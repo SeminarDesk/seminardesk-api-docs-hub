@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeminarDesk Webhooks Documentation</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/png" href="images/img-companyavatar-colorful.png">
+    <!-- Swagger UI -->
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo-title">
+                <a href="index.html" class="logo-link">
+                    <img src="images/seminardesk-logo-fullcolor.svg" alt="SeminarDesk Logo" class="logo">
+                </a>
+                <h1>Webhooks Documentation</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="private-api.html">Private API</a></li>
+                    <li><a href="public-api.html">Public API</a></li>
+                    <li><a href="webhooks.html" class="active">Webhooks</a></li>
+                    <li><a href="https://www.seminardesk.de" target="_blank" rel="noopener noreferrer" class="website-link">Visit Website <img src="icons/external-link.svg" alt="External link" class="icon icon-external"></a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="version-control">
+            <label for="version-select">Select Version:</label>
+            <div class="version-select-wrapper">
+                <select id="version-select" class="version-select">
+                    <option value="v1">v1 (Stable)</option>
+                    <option value="v1-next">v1-next (Development)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="api-docs-card">
+            <div id="swagger-ui"></div>
+        </div>
+    </main>
+
+    <footer class="container">
+        <p>&copy; SeminarDesk. All rights reserved.</p>
+        <p><a href="https://www.seminardesk.de" target="_blank" rel="noopener noreferrer">Visit SeminarDesk Website</a></p>
+    </footer>
+
+    <!-- Dependencies -->
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage('webhooks');
+        });
+    </script>
+</body>
+</html> 
