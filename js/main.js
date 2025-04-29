@@ -1,10 +1,6 @@
 // Get base URL for assets
 function getBaseUrl() {
-    // Check if we're on GitHub Pages
-    const repoName = 'seminardesk-api-docs-hub'; // Update this if your repo name is different
-    if (window.location.hostname === 'seminardesk.github.io') {
-        return `/${repoName}`;
-    }
+    // No need for base path when using custom domain
     return '';
 }
 
