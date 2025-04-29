@@ -17,7 +17,7 @@ seminardesk-api-docs-hub/
 ├── css/
 │   └── styles.css      # Global styles
 ├── js/
-│   └── main.js         # API spec loading and UI initialization
+│   └── app.js          # API spec loading and UI initialization
 ├── icons/
 │   ├── arrow-up.svg    # Back to top button icon
 │   ├── chevron-down.svg # Version selector icon
@@ -51,8 +51,8 @@ v1-next: github.com/SeminarDesk/webhook-specs/next/webhooks.yaml
 - **Framework**: None - pure HTML/CSS/JS
 - **API Spec Format**: OpenAPI 3.0
 - **Dependencies**:
-  - Swagger UI v5.11.0
-  - js-yaml v4.1.0
+  - Swagger UI v5.21.0 (via cdnjs.cloudflare.com)
+  - js-yaml v4.1.0 (via cdnjs.cloudflare.com)
 
 ## Deployment
 Deploy directly to any static hosting service. No build process required. 

@@ -1,9 +1,3 @@
-// Get base URL for assets
-function getBaseUrl() {
-    // No need for base path when using custom domain
-    return '';
-}
-
 // Cache for storing API specifications
 const apiCache = {
     private: {
@@ -54,6 +48,17 @@ function initSwaggerUI(spec, containerId, apiType) {
 
     // Sanitize apiType
     const safeApiType = String(apiType).toLowerCase();
+
+    // Check if SwaggerUIBundle is defined
+    if (typeof SwaggerUIBundle === 'undefined') {
+        console.error('SwaggerUIBundle is not defined. Make sure Swagger UI is properly loaded.');
+        const errorElement = document.getElementById('error');
+        if (errorElement) {
+            errorElement.textContent = 'Failed to load specification: SwaggerUIBundle is not defined';
+            errorElement.style.display = 'block';
+        }
+        return;
+    }
 
     // Initialize Swagger UI with conditional settings based on API type
     const ui = SwaggerUIBundle({
@@ -199,14 +204,6 @@ function addErrorContainer() {
     document.getElementById('swagger-ui').parentNode.insertBefore(errorDiv, document.getElementById('swagger-ui'));
 }
 
-// Initialize common elements
-document.addEventListener('DOMContentLoaded', () => {
-    addLoadingIndicator();
-    addErrorContainer();
-    addBackToTopButton();
-    initBackToTop();
-});
-
 // Add back to top button
 function addBackToTopButton() {
     const button = document.createElement('a');
@@ -241,4 +238,39 @@ function initBackToTop() {
             behavior: 'smooth'
         });
     });
-} 
+}
+
+// Initialize Private API page
+function initPrivateApi() {
+    initPage('private');
+}
+
+// Initialize Public API page
+function initPublicApi() {
+    initPage('public');
+}
+
+// Initialize Webhooks page
+function initWebhooks() {
+    initPage('webhooks');
+}
+
+// Initialize common elements and page based on current path
+document.addEventListener('DOMContentLoaded', () => {
+    // Add common UI elements
+    addLoadingIndicator();
+    addErrorContainer();
+    addBackToTopButton();
+    initBackToTop();
+
+    // Initialize page based on current path
+    const path = window.location.pathname;
+
+    if (path.includes('private-api')) {
+        initPrivateApi();
+    } else if (path.includes('public-api')) {
+        initPublicApi();
+    } else if (path.includes('webhooks')) {
+        initWebhooks();
+    }
+});
