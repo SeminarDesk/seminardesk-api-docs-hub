@@ -38,11 +38,22 @@ const API_URLS = {
 
 // Initialize Swagger UI
 function initSwaggerUI(spec, containerId, apiType) {
+    // Validate inputs
+    if (!spec || typeof spec !== 'object') {
+        console.error('Invalid specification provided');
+        return;
+    }
+
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Clear previous content
-    container.innerHTML = '';
+    // Clear previous content safely
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+
+    // Sanitize apiType
+    const safeApiType = String(apiType).toLowerCase();
 
     // Initialize Swagger UI with conditional settings based on API type
     const ui = SwaggerUIBundle({
@@ -50,7 +61,7 @@ function initSwaggerUI(spec, containerId, apiType) {
         dom_id: `#${containerId}`,
         deepLinking: true,
         displayRequestDuration: true,
-        filter: apiType !== 'webhooks',
+        filter: safeApiType !== 'webhooks',
         presets: [
             SwaggerUIBundle.presets.apis,
             SwaggerUIStandalonePreset
@@ -59,10 +70,10 @@ function initSwaggerUI(spec, containerId, apiType) {
             SwaggerUIBundle.plugins.DownloadUrl
         ],
         layout: "BaseLayout",
-        defaultModelsExpandDepth: apiType === 'webhooks' ? 1 : -1,
-        docExpansion: apiType === 'webhooks' ? "full" : "list",
-        defaultModelExpandDepth: apiType === 'webhooks' ? 5 : 1,
-        showExtensions: apiType === 'webhooks',
+        defaultModelsExpandDepth: safeApiType === 'webhooks' ? 1 : -1,
+        docExpansion: safeApiType === 'webhooks' ? "full" : "list",
+        defaultModelExpandDepth: safeApiType === 'webhooks' ? 5 : 1,
+        showExtensions: safeApiType === 'webhooks',
         syntaxHighlight: {
             theme: "monokai"
         }
@@ -71,6 +82,11 @@ function initSwaggerUI(spec, containerId, apiType) {
 
 // Fetch API specification
 async function fetchApiSpec(apiType, version) {
+    // Validate inputs
+    if (!apiType || !version || !API_URLS[apiType] || !API_URLS[apiType][version]) {
+        throw new Error('Invalid API type or version');
+    }
+
     const url = API_URLS[apiType][version];
     const cacheKey = `${apiType}-${version}`;
 
@@ -88,9 +104,22 @@ async function fetchApiSpec(apiType, version) {
         let spec;
         if (apiType === 'webhooks') {
             const yamlText = await response.text();
-            spec = jsyaml.load(yamlText);
+            try {
+                spec = jsyaml.load(yamlText);
+            } catch (e) {
+                throw new Error('Invalid YAML format');
+            }
         } else {
-            spec = await response.json();
+            try {
+                spec = await response.json();
+            } catch (e) {
+                throw new Error('Invalid JSON format');
+            }
+        }
+
+        // Validate spec
+        if (!spec || typeof spec !== 'object') {
+            throw new Error('Invalid specification format');
         }
 
         // Cache the result
