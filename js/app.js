@@ -192,7 +192,10 @@ function addLoadingIndicator() {
     loadingDiv.className = 'loading';
     loadingDiv.style.display = 'none';
     loadingDiv.innerHTML = '<p>Loading API specification...</p>';
-    document.getElementById('swagger-ui').parentNode.insertBefore(loadingDiv, document.getElementById('swagger-ui'));
+    const swaggerUI = document.getElementById('swagger-ui');
+    if (swaggerUI && swaggerUI.parentNode) {
+        swaggerUI.parentNode.insertBefore(loadingDiv, swaggerUI);
+    }
 }
 
 // Add error message container
@@ -201,7 +204,10 @@ function addErrorContainer() {
     errorDiv.id = 'error';
     errorDiv.className = 'error-message';
     errorDiv.style.display = 'none';
-    document.getElementById('swagger-ui').parentNode.insertBefore(errorDiv, document.getElementById('swagger-ui'));
+    const swaggerUI = document.getElementById('swagger-ui');
+    if (swaggerUI && swaggerUI.parentNode) {
+        swaggerUI.parentNode.insertBefore(errorDiv, swaggerUI);
+    }
 }
 
 // Add back to top button
@@ -255,6 +261,20 @@ function initWebhooks() {
     initPage('webhooks');
 }
 
+// Initialize mobile menu
+function initMobileMenu() {
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
+    const nav = document.querySelector('nav');
+
+    if (!menuToggle || !nav) return;
+
+    menuToggle.addEventListener('click', () => {
+        nav.classList.toggle('expanded');
+        const isExpanded = nav.classList.contains('expanded');
+        menuToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    });
+}
+
 // Initialize common elements and page based on current path
 document.addEventListener('DOMContentLoaded', () => {
     // Add common UI elements
@@ -262,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addErrorContainer();
     addBackToTopButton();
     initBackToTop();
+    initMobileMenu();
 
     // Initialize page based on current path
     const path = window.location.pathname;
