@@ -8,8 +8,6 @@
                        !Array.prototype.includes;
 
   if (needsPolyfills) {
-    console.log('Loading polyfills for older browsers');
-
     // Create script element for Cloudflare's polyfill CDN
     // Using Cloudflare CDN for security reasons instead of polyfill.io
     var script = document.createElement('script');

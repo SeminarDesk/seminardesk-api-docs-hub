@@ -61,7 +61,7 @@ function initSwaggerUI(spec, containerId, apiType) {
     }
 
     // Initialize Swagger UI with conditional settings based on API type
-    SwaggerUIBundle({
+    return SwaggerUIBundle({
         spec: spec,
         dom_id: `#${containerId}`,
         deepLinking: true,
@@ -81,6 +81,12 @@ function initSwaggerUI(spec, containerId, apiType) {
         showExtensions: safeApiType === 'webhooks',
         syntaxHighlight: {
             theme: "monokai"
+        },
+        onComplete: function () {
+            // This callback is triggered when Swagger UI has finished rendering
+            // Dispatch a custom event that we can listen for in initPage
+            const event = new CustomEvent('swaggerUIComplete');
+            document.dispatchEvent(event);
         }
     });
 }
@@ -150,9 +156,19 @@ function handleVersionSelect(apiType) {
         const loadingElement = document.getElementById('loading');
         const errorElement = document.getElementById('error');
 
+        // Check if this is a user-initiated version change (not during page initialization)
+        const isUserInitiated = e.isTrusted || window._isManualVersionChange;
+
         // Update URL with version parameter while preserving other parameters
         const url = new URL(window.location.href);
         url.searchParams.set('version', version);
+
+        // Only remove hash fragment when explicitly switching versions via the dropdown
+        // not during the initial page load
+        if (isUserInitiated) {
+            url.hash = ''; // Remove hash fragment when switching versions
+        }
+
         window.history.pushState({version: version}, '', url.toString());
 
         // Show loading state
@@ -161,6 +177,7 @@ function handleVersionSelect(apiType) {
 
         try {
             const spec = await fetchApiSpec(apiType, version);
+            // Initialize Swagger UI and store the instance
             initSwaggerUI(spec, containerId, apiType);
         } catch (error) {
             errorElement.textContent = `Failed to load ${apiType} specification: ${error.message}`;
@@ -198,8 +215,101 @@ function initPage(apiType) {
     // Load initial version
     document.getElementById('version-select').value = new URLSearchParams(window.location.search).get('version') || 'v1';
 
-    // Trigger initial load
+    // Store the hash fragment before triggering the change event
+    const originalHash = window.location.hash;
+
+    // Flag to prevent infinite loops during initialization
+    let initialLoadComplete = false;
+
+    // Trigger initial load - mark this as not a user-initiated change
+    window._isManualVersionChange = false;
     document.getElementById('version-select').dispatchEvent(new Event('change'));
+    window._isManualVersionChange = true;
+
+    // After the Swagger UI is initialized, restore the hash fragment if it exists
+    if (originalHash) {
+        // Function to handle hash restoration and scrolling
+        const handleHashRestoration = () => {
+            // Only restore hash if we haven't already processed it
+            if (!initialLoadComplete) {
+                initialLoadComplete = true;
+
+                // Set the hash which should trigger Swagger UI's built-in deep linking
+                window.location.hash = originalHash;
+
+                // If Swagger UI's deep linking doesn't scroll properly, we'll do it manually
+                // Find the element referenced by the hash and scroll to it
+                const hashId = originalHash.substring(1); // Remove the # symbol
+
+                // Add a small delay to ensure the DOM is fully updated after setting the hash
+                setTimeout(() => {
+                    // Try multiple selectors to find the element
+                    // Swagger UI might create elements with different IDs or classes
+                    const element = document.getElementById(hashId) ||
+                        document.querySelector(`[id="${hashId}"]`) ||
+                        document.querySelector(`a[href="${originalHash}"]`) ||
+                        document.querySelector(`div[id*="${hashId}"]`) ||
+                        document.querySelector(`div[data-tag="${hashId.split('/')[1]}"]`) ||
+                        document.querySelector(`.opblock-tag-section[data-tag="${hashId.split('/')[1]}"]`);
+
+                    if (element) {
+                        // Try multiple scrolling methods
+                        element.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+                        // If the above doesn't work, try a more direct approach
+                        const elementRect = element.getBoundingClientRect();
+                        const absoluteElementTop = elementRect.top + window.pageYOffset;
+                        window.scrollTo({
+                            top: absoluteElementTop - 50, // Add some offset for header
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        // Try to find and expand the operation tag section first
+                        const tagName = hashId.split('/')[1];
+                        if (tagName) {
+                            const tagSection = document.querySelector(`div[data-tag="${tagName}"]`) ||
+                                document.querySelector(`.opblock-tag-section[data-tag="${tagName}"]`);
+
+                            if (tagSection) {
+                                // Try to expand the section if it's collapsed
+                                const tagButton = tagSection.querySelector('.opblock-tag');
+                                if (tagButton) {
+                                    tagButton.click();
+                                }
+
+                                // Scroll to the tag section
+                                tagSection.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+                                // Then try to find the operation after expanding
+                                setTimeout(() => {
+                                    const operation = document.getElementById(hashId) ||
+                                        document.querySelector(`[id="${hashId}"]`) ||
+                                        document.querySelector(`div[id*="${hashId}"]`);
+
+                                    if (operation) {
+                                        operation.scrollIntoView({behavior: 'smooth', block: 'start'});
+                                    }
+                                }, 500);
+                            }
+                        }
+                    }
+                }, 100);
+            }
+        };
+
+        // Listen for the custom event dispatched by Swagger UI's onComplete callback
+        document.addEventListener('swaggerUIComplete', handleHashRestoration, {once: true});
+
+        // Fallback: If for some reason the event doesn't trigger within 2 seconds,
+        // handle the hash restoration anyway
+        setTimeout(() => {
+            if (!initialLoadComplete) {
+                handleHashRestoration();
+            }
+        }, 2000);
+    } else {
+        initialLoadComplete = true;
+    }
 }
 
 // Add loading indicator
