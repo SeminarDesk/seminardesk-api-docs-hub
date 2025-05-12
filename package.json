@@ -1,0 +1,20 @@
+{
+  "name": "seminardesk-api-docs-hub",
+  "version": "1.0.0",
+  "description": "Static documentation site for SeminarDesk's APIs",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -p 3000 -c-1 -o"
+  },
+  "keywords": [
+    "api",
+    "documentation",
+    "swagger",
+    "seminardesk"
+  ],
+  "author": "SeminarDesk",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
