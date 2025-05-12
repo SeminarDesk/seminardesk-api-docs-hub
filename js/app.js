@@ -61,7 +61,7 @@ function initSwaggerUI(spec, containerId, apiType) {
     }
 
     // Initialize Swagger UI with conditional settings based on API type
-    const ui = SwaggerUIBundle({
+    SwaggerUIBundle({
         spec: spec,
         dom_id: `#${containerId}`,
         deepLinking: true,
@@ -93,7 +93,6 @@ async function fetchApiSpec(apiType, version) {
     }
 
     const url = API_URLS[apiType][version];
-    const cacheKey = `${apiType}-${version}`;
 
     // Check cache first
     if (apiCache[apiType][version]) {
@@ -103,7 +102,8 @@ async function fetchApiSpec(apiType, version) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            console.error(`HTTP error! status: ${response.status}`);
+            return null;
         }
 
         let spec;
@@ -112,19 +112,22 @@ async function fetchApiSpec(apiType, version) {
             try {
                 spec = jsyaml.load(yamlText);
             } catch (e) {
-                throw new Error('Invalid YAML format');
+                console.error('Invalid YAML format');
+                return null;
             }
         } else {
             try {
                 spec = await response.json();
             } catch (e) {
-                throw new Error('Invalid JSON format');
+                console.error('Invalid JSON format');
+                return null;
             }
         }
 
         // Validate spec
         if (!spec || typeof spec !== 'object') {
-            throw new Error('Invalid specification format');
+            console.error('Invalid specification format');
+            return null;
         }
 
         // Cache the result
@@ -146,6 +149,11 @@ function handleVersionSelect(apiType) {
         const containerId = 'swagger-ui';
         const loadingElement = document.getElementById('loading');
         const errorElement = document.getElementById('error');
+
+        // Update URL with version parameter while preserving other parameters
+        const url = new URL(window.location.href);
+        url.searchParams.set('version', version);
+        window.history.pushState({version: version}, '', url.toString());
 
         // Show loading state
         loadingElement.style.display = 'block';
@@ -177,9 +185,18 @@ function initPage(apiType) {
         }
     });
 
+    // Handle browser history navigation (back/forward buttons)
+    window.addEventListener('popstate', () => {
+        const version = new URLSearchParams(window.location.search).get('version') || 'v1';
+        const versionSelect = document.getElementById('version-select');
+        if (versionSelect && versionSelect.value !== version) {
+            versionSelect.value = version;
+            versionSelect.dispatchEvent(new Event('change'));
+        }
+    });
+
     // Load initial version
-    const version = new URLSearchParams(window.location.search).get('version') || 'v1';
-    document.getElementById('version-select').value = version;
+    document.getElementById('version-select').value = new URLSearchParams(window.location.search).get('version') || 'v1';
 
     // Trigger initial load
     document.getElementById('version-select').dispatchEvent(new Event('change'));

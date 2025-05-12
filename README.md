@@ -54,5 +54,25 @@ v1-next: github.com/SeminarDesk/webhook-specs/next/webhooks.yaml
   - Swagger UI v5.21.0 (via cdnjs.cloudflare.com)
   - js-yaml v4.1.0 (via cdnjs.cloudflare.com)
 
+## Development
+
+### Setup
+1. Make sure you have [Node.js](https://nodejs.org/) installed
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+### Running the Development Server
+To start the development server:
+```
+npm start
+```
+
+This will:
+- Start a local server on port 3000
+- Open your default browser to http://localhost:3000
+- Disable caching to ensure you always see the latest changes
+
 ## Deployment
 Deploy directly to any static hosting service. No build process required. 
